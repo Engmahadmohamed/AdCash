@@ -56,13 +56,28 @@ function checkAuthState() {
 }
 
 function login() {
-    const usernameInput = document.getElementById("usernameInput");
-    const username = usernameInput.value.trim();
-    if (username === "") {
-        showToast("Please enter a username.");
+    const phoneInput = document.getElementById("usernameInput");
+    const phoneNumber = phoneInput.value.trim();
+    
+    // Basic phone number validation
+    if (phoneNumber === "") {
+        showToast({
+            message: "Please enter your phone number.",
+            type: "error"
+        });
         return;
     }
-    currentUser = username;
+    
+    // You can add more specific phone validation if needed
+    if (!/^\d{9,12}$/.test(phoneNumber)) {
+        showToast({
+            message: "Please enter a valid phone number.",
+            type: "error"
+        });
+        return;
+    }
+    
+    currentUser = phoneNumber;
     localStorage.setItem("username", currentUser);
     loadUserData();
     checkAuthState();

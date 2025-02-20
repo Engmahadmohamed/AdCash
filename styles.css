@@ -185,6 +185,30 @@ input[type="number"]:focus {
   border-color: var(--primary-color);
 }
 
+/* Update input styles to better handle phone numbers */
+input[type="tel"] {
+    width: 100%;
+    padding: var(--spacing-md);
+    background: var(--background-color);
+    border: 2px solid #E2E8F0;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-md);
+    transition: all 0.3s ease;
+    font-family: monospace; /* Better for number display */
+    letter-spacing: 1px; /* Better number readability */
+}
+
+input[type="tel"]:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(76, 111, 255, 0.1);
+    outline: none;
+}
+
+input[type="tel"]::placeholder {
+    font-family: var(--font-family);
+    letter-spacing: normal;
+}
+
 /* Balance Card */
 .balance-card {
   background: var(--surface-color);
