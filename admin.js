@@ -70,22 +70,45 @@ function displayUsers(users) {
 // User Management Functions
 let currentUsername = null; // To track which user is being managed
 
+// Add this function to format dates
+function formatDate(date) {
+    return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    }).format(date);
+}
+
 function viewUserDetails(username) {
     currentUsername = username;
     const userData = JSON.parse(localStorage.getItem(`userData_${username}`));
     const modal = document.getElementById("userDetailsModal");
     const details = document.getElementById("userDetails");
     
+    // Add join date if it doesn't exist
+    if (!userData.joinDate) {
+        userData.joinDate = new Date().toISOString();
+        localStorage.setItem(`userData_${username}`, JSON.stringify(userData));
+    }
+
     details.innerHTML = `
         <div class="user-header">
             <i class="fas fa-user-circle"></i>
             <h3>${username}</h3>
+            <div class="join-date">
+                <i class="far fa-calendar-alt"></i>
+                Joined: ${formatDate(new Date(userData.joinDate))}
+            </div>
         </div>
         
         <div class="stats-container">
             <div class="stat-box">
                 <div class="stat-label">Balance</div>
                 <div class="stat-value">$${userData.balance.toFixed(2)}</div>
+                <div class="stat-date">Last updated: ${formatDate(new Date())}</div>
                 <button onclick="editBalance('${username}')" class="edit-stat-btn">
                     <i class="fas fa-edit"></i>
                 </button>
@@ -94,11 +117,15 @@ function viewUserDetails(username) {
             <div class="stat-box">
                 <div class="stat-label">Total Withdrawn</div>
                 <div class="stat-value">$${(userData.totalWithdrawn || 0).toFixed(2)}</div>
+                <div class="stat-date">Last withdrawal: ${userData.lastWithdrawalDate ? 
+                    formatDate(new Date(userData.lastWithdrawalDate)) : 'Never'}</div>
             </div>
             
             <div class="stat-box">
                 <div class="stat-label">Ads Watched</div>
                 <div class="stat-value">${userData.adsWatched || 0}</div>
+                <div class="stat-date">Last ad: ${userData.lastAdDate ? 
+                    formatDate(new Date(userData.lastAdDate)) : 'Never'}</div>
                 <button onclick="resetAdsWatched('${username}')" class="edit-stat-btn">
                     <i class="fas fa-redo"></i>
                 </button>
@@ -107,6 +134,8 @@ function viewUserDetails(username) {
             <div class="stat-box">
                 <div class="stat-label">Referrals</div>
                 <div class="stat-value">${userData.referrals || 0}</div>
+                <div class="stat-date">Last referral: ${userData.lastReferralDate ? 
+                    formatDate(new Date(userData.lastReferralDate)) : 'Never'}</div>
                 <button onclick="editReferrals('${username}')" class="edit-stat-btn">
                     <i class="fas fa-edit"></i>
                 </button>
@@ -117,7 +146,7 @@ function viewUserDetails(username) {
             <span class="status-label">Channel Joined</span>
             <span class="status-badge ${userData.hasJoinedChannel ? 'joined' : 'not-joined'}">
                 <i class="fas ${userData.hasJoinedChannel ? 'fa-check-circle' : 'fa-times-circle'}"></i>
-                ${userData.hasJoinedChannel ? 'Yes' : 'No'}
+                ${userData.hasJoinedChannel ? `Yes (${formatDate(new Date(userData.channelJoinDate || userData.joinDate))})` : 'No'}
             </span>
         </div>
         
@@ -130,11 +159,12 @@ function viewUserDetails(username) {
                 ${userData.history.map(item => {
                     const amount = item.match(/\(\$([0-9.]+)\)/);
                     const timestamp = item.match(/at ([\d:]+\s[AP]M)/);
+                    const date = new Date();
                     return `
                         <div class="history-item">
                             <div class="history-time">
                                 <i class="far fa-clock"></i>
-                                ${timestamp ? timestamp[1] : ''}
+                                ${formatDate(date)}
                             </div>
                             <div class="history-content">
                                 ${item.replace(/\(\$([0-9.]+)\)/, 
@@ -239,7 +269,8 @@ function approveWithdrawal() {
     if (amount !== null && !isNaN(amount) && parseFloat(amount) <= userData.balance) {
         userData.balance -= parseFloat(amount);
         userData.totalWithdrawn = (userData.totalWithdrawn || 0) + parseFloat(amount);
-        userData.history.push(`Withdrawal of $${amount} approved by admin at ${new Date().toLocaleString()}`);
+        userData.lastWithdrawalDate = new Date().toISOString();
+        userData.history.push(`Withdrawal of $${amount} approved by admin at ${formatDate(new Date())}`);
         localStorage.setItem(`userData_${currentUsername}`, JSON.stringify(userData));
         
         viewUserDetails(currentUsername);
