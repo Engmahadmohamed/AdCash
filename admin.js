@@ -170,6 +170,16 @@ function viewUserDetails(username) {
             </div>
         </div>
         
+        <div class="score-card">
+            <div class="score-info">
+                <div class="score-label">User Score</div>
+                <div class="score-value">${calculateUserScore(userData)}/100</div>
+            </div>
+            <div class="score-progress">
+                <div class="score-bar" style="width: ${calculateUserScore(userData)}%"></div>
+            </div>
+        </div>
+        
         <div class="channel-status">
             <span class="status-label">Channel Joined</span>
             <span class="status-badge ${userData.hasJoinedChannel ? 'joined' : 'not-joined'}">
@@ -445,4 +455,32 @@ function toggleAccountStatus(username) {
     
     viewUserDetails(username);
     showAdminToast(`Account ${userData.isActive ? 'activated' : 'deactivated'}`, 'success');
+}
+
+// Add this function to calculate user score
+function calculateUserScore(userData) {
+    let score = 0;
+    
+    // Activity score (max 30)
+    if (userData.adsWatched > 0) score += Math.min(userData.adsWatched * 2, 30);
+    
+    // Balance score (max 20)
+    score += Math.min((userData.balance + (userData.totalWithdrawn || 0)) * 2, 20);
+    
+    // Referral score (max 20)
+    score += Math.min((userData.referrals || 0) * 4, 20);
+    
+    // Channel membership (10)
+    if (userData.hasJoinedChannel) score += 10;
+    
+    // Account activity (max 20)
+    if (userData.lastActivityDate) {
+        const daysSinceActive = (new Date() - new Date(userData.lastActivityDate)) / (1000 * 60 * 60 * 24);
+        if (daysSinceActive < 1) score += 20;
+        else if (daysSinceActive < 7) score += 15;
+        else if (daysSinceActive < 30) score += 10;
+        else score += 5;
+    }
+    
+    return Math.round(score);
 } 
