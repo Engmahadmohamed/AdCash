@@ -57,7 +57,9 @@ function checkAuthState() {
 
 function login() {
     const phoneInput = document.getElementById("usernameInput");
+    const contactInput = document.getElementById("contactInput");
     const phoneNumber = phoneInput.value.trim();
+    const contactInfo = contactInput.value.trim();
     
     // Basic phone number validation
     if (phoneNumber === "") {
@@ -78,8 +80,24 @@ function login() {
     
     currentUser = phoneNumber;
     localStorage.setItem("username", currentUser);
+    
+    // Generate unique referral code for new user
+    const userData = {
+        balance: 0,
+        adsWatched: 0,
+        history: [],
+        referrals: 0,
+        referralCode: generateReferralCode(phoneNumber),
+        referredUsers: [],
+        totalWithdrawn: 0,
+        hasJoinedChannel: false,
+        joinDate: new Date().toISOString(),
+        contactInfo: contactInfo
+    };
+    
+    localStorage.setItem(`userData_${currentUser}`, JSON.stringify(userData));
     loadUserData();
-    checkReferral();
+    checkReferral(); // Check if user came from referral link
     checkAuthState();
     checkChannelMembership();
 }
@@ -97,6 +115,11 @@ function loadUserData() {
     const data = localStorage.getItem(dataKey);
     if (data) {
         userData = JSON.parse(data);
+        // Ensure referral code exists
+        if (!userData.referralCode) {
+            userData.referralCode = generateReferralCode(currentUser);
+            saveUserData();
+        }
     } else {
         userData = {
             balance: 0,
@@ -110,8 +133,9 @@ function loadUserData() {
             totalWithdrawn: 0,
             hasJoinedChannel: false
         };
-        localStorage.setItem(dataKey, JSON.stringify(userData));
+        saveUserData();
     }
+    updateReferralLink(); // Update referral UI when data loads
 }
 
 function saveUserData() {
@@ -408,8 +432,17 @@ document.getElementById("withdrawAmount").addEventListener('input', validateWith
 // Referral Functions
 function updateReferralLink() {
     const referralLink = document.getElementById("referralLink");
-    const userSpecificLink = `https://t.me/Ad_Cashbot?start=${encodeURIComponent(currentUser)}`;
-    referralLink.value = userSpecificLink;
+    const currentReferrals = document.getElementById("currentReferrals");
+    const referralProgress = document.getElementById("referralProgress");
+    
+    // Update referral count and progress bar
+    const referralCount = userData.referrals || 0;
+    currentReferrals.textContent = referralCount;
+    referralProgress.style.width = `${(referralCount / 5) * 100}%`;
+    
+    // Use Telegram bot link with user's referral code
+    const telegramBotLink = `https://t.me/Ad_Cashbot?start=${userData.referralCode}`;
+    referralLink.value = telegramBotLink;
 }
 
 function copyReferral() {
@@ -426,14 +459,14 @@ function copyReferral() {
 
 function shareOnTelegram() {
     const referralLink = document.getElementById("referralLink").value;
-    const text = encodeURIComponent(`Join EarnPro and start earning! Use my referral link: ${referralLink}`);
-    const telegramUrl = `https://t.me/share/url?url=${referralLink}&text=${text}`;
+    const text = encodeURIComponent(`Join EarnPro and earn money by watching ads! 💰\n\nUse my referral link to get started:\n${referralLink}`);
+    const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${text}`;
     window.open(telegramUrl, '_blank');
 }
 
 function shareOnWhatsApp() {
     const referralLink = document.getElementById("referralLink").value;
-    const text = encodeURIComponent(`Join EarnPro and start earning! Use my referral link: ${referralLink}`);
+    const text = encodeURIComponent(`Join EarnPro and earn money by watching ads! 💰\n\nUse my referral link to get started:\n${referralLink}`);
     const whatsappUrl = `https://wa.me/?text=${text}`;
     window.open(whatsappUrl, '_blank');
 }
@@ -457,25 +490,37 @@ function checkReferral() {
     const referralCode = urlParams.get('ref');
     
     if (referralCode) {
-        // Find the referrer user
         const allUsers = getAllUsers();
         const referrer = allUsers.find(user => user.referralCode === referralCode);
         
         if (referrer && referrer.username !== currentUser) {
             const referrerData = JSON.parse(localStorage.getItem(`userData_${referrer.username}`));
             
-            // Check if this user hasn't been counted as a referral before
+            // Check referral limit
+            if (referrerData.referrals >= 5) {
+                showToast({
+                    message: "Referrer has reached maximum referral limit",
+                    type: "error"
+                });
+                return;
+            }
+            
+            // Initialize referral tracking arrays if they don't exist
             if (!referrerData.referredUsers) {
                 referrerData.referredUsers = [];
             }
             
+            // Check if this user hasn't been counted as a referral before
             if (!referrerData.referredUsers.includes(currentUser)) {
                 // Add referral bonus
                 referrerData.referrals = (referrerData.referrals || 0) + 1;
                 referrerData.balance += 0.05; // Referral bonus
                 referrerData.referredUsers.push(currentUser);
                 referrerData.lastReferralDate = new Date().toISOString();
-                referrerData.history.push(`Earned $0.05 from referral: ${currentUser} at ${new Date().toLocaleString()}`);
+                
+                // Add to history
+                const timestamp = new Date().toLocaleString();
+                referrerData.history.push(`Earned $0.05 from referral: ${currentUser} at ${timestamp}`);
                 
                 // Save referrer's data
                 localStorage.setItem(`userData_${referrer.username}`, JSON.stringify(referrerData));

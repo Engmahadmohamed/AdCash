@@ -52,6 +52,10 @@
             <label for="usernameInput">Phone Number</label>
             <input type="tel" id="usernameInput" placeholder="Enter your phone number">
           </div>
+          <div class="input-group">
+            <label for="contactInput">Contact Info (Optional)</label>
+            <input type="text" id="contactInput" placeholder="Telegram/WhatsApp/Email">
+          </div>
           <button class="auth-btn" onclick="login()">
             <i class="fas fa-sign-in-alt"></i> Get Started
           </button>
@@ -132,6 +136,14 @@
             <i class="fas fa-gift"></i>
             <h2>Invite Friends</h2>
             <p>Earn $0.05 for each referral (Max 5)</p>
+            <div class="referral-progress">
+              <div class="progress-text">
+                <span>Referrals: <strong id="currentReferrals">0</strong>/5</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" id="referralProgress"></div>
+              </div>
+            </div>
           </div>
           <div class="referral-content">
             <div class="referral-link-container">
@@ -147,16 +159,6 @@
               <button onclick="shareOnWhatsApp()">
                 <i class="fab fa-whatsapp"></i> Share on WhatsApp
               </button>
-            </div>
-            <div class="referral-stats">
-              <div class="referral-stat">
-                <div class="value" id="totalReferrals">0</div>
-                <div class="label">Total Referrals</div>
-              </div>
-              <div class="referral-stat">
-                <div class="value" id="referralEarnings">$0.00</div>
-                <div class="label">Referral Earnings</div>
-              </div>
             </div>
           </div>
         </div>

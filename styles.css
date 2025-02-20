@@ -1041,4 +1041,50 @@ input[type="tel"]::placeholder {
 
 #channelJoinModal .modal-content {
   max-width: 360px;
+}
+
+/* Contact Input Styling */
+.input-group input[type="text"]#contactInput {
+    font-family: var(--font-family);
+    letter-spacing: normal;
+}
+
+.input-group input[type="text"]#contactInput::placeholder {
+    color: #a0aec0;
+}
+
+/* Referral Progress Bar */
+.referral-progress {
+    margin: 15px 0;
+    text-align: center;
+}
+
+.progress-text {
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.progress-text strong {
+    color: var(--primary-color);
+}
+
+.progress-bar {
+    height: 6px;
+    background: rgba(76, 111, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--primary-color);
+    transition: width 0.3s ease;
+}
+
+/* Update referral link styles */
+.referral-link-container input {
+    font-family: monospace;
+    font-size: 14px;
+    color: var(--text-primary);
 } 

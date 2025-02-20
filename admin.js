@@ -17,9 +17,7 @@ function checkAdminAuth() {
 
 // Load and display all users
 function loadAllUsers() {
-    const users = getAllUsers();
-    updateAdminStats(users);
-    displayUsers(users);
+    checkForNewUsers();
 }
 
 function getAllUsers() {
@@ -45,7 +43,7 @@ function updateAdminStats(users) {
     document.getElementById("totalAdsWatched").textContent = totalAdsWatched;
 }
 
-function displayUsers(users) {
+function displayUsers(users, newUsers = []) {
     const tbody = document.getElementById("usersTableBody");
     tbody.innerHTML = "";
 
@@ -60,8 +58,26 @@ function displayUsers(users) {
         const tr = document.createElement("tr");
         const joinDate = user.joinDate ? formatDate(new Date(user.joinDate)) : 'Unknown';
         
+        // Check if this is a new user
+        const isNewUser = newUsers.some(newUser => newUser.username === user.username);
+        if (isNewUser) {
+            tr.classList.add('new-user');
+            tr.classList.add('new-user-animation');
+            setTimeout(() => {
+                tr.classList.remove('new-user-animation');
+            }, 2000);
+        }
+        
         tr.innerHTML = `
-            <td>${user.username}</td>
+            <td>
+                ${user.username}
+                ${user.contactInfo ? `
+                    <div class="contact-info">
+                        <i class="fas fa-address-card"></i>
+                        ${user.contactInfo}
+                    </div>
+                ` : ''}
+            </td>
             <td>$${user.balance.toFixed(2)}</td>
             <td>$${((user.balance || 0) + (user.totalWithdrawn || 0)).toFixed(2)}</td>
             <td>${user.adsWatched || 0}</td>
@@ -76,7 +92,7 @@ function displayUsers(users) {
         tbody.appendChild(tr);
     });
 
-    // Update the total count
+    // Update the total count display
     const totalCount = document.getElementById("totalUsers");
     if (totalCount) {
         totalCount.textContent = users.length;
@@ -86,16 +102,36 @@ function displayUsers(users) {
 // User Management Functions
 let currentUsername = null; // To track which user is being managed
 
-// Add this function to format dates
+// Update the formatDate function to use local date format
 function formatDate(date) {
-    return new Intl.DateTimeFormat('en-US', {
+    // Check if date is valid
+    if (!(date instanceof Date) || isNaN(date)) {
+        return 'Invalid Date';
+    }
+
+    // Get local date string
+    const localDate = date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
-        day: 'numeric',
+        day: 'numeric'
+    });
+
+    // Get local time string
+    const localTime = date.toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit',
-        second: '2-digit'
-    }).format(date);
+        hour12: true
+    });
+
+    return `${localDate}, ${localTime}`;
+}
+
+// Add this function to get current date in local timezone
+function getCurrentDate() {
+    const now = new Date();
+    // Adjust for local timezone
+    const localDate = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
+    return localDate;
 }
 
 function viewUserDetails(username) {
@@ -109,13 +145,18 @@ function viewUserDetails(username) {
         localStorage.setItem(`userData_${username}`, JSON.stringify(userData));
     }
 
+    const joinDate = userData.joinDate ? formatDate(new Date(userData.joinDate)) : 'Unknown';
+    const lastActivity = userData.lastActivityDate ? formatDate(new Date(userData.lastActivityDate)) : 'Never';
+    const channelJoinDate = userData.channelJoinDate ? formatDate(new Date(userData.channelJoinDate)) : 'Not joined';
+    const currentDate = formatDate(getCurrentDate());
+
     const userHeaderHTML = `
         <div class="user-header">
             <i class="fas fa-user-circle"></i>
             <h3>${username}</h3>
             <div class="join-date">
                 <i class="far fa-calendar-alt"></i>
-                Joined: ${formatDate(new Date(userData.joinDate))}
+                Joined: ${joinDate}
                 <button onclick="editJoinDate('${username}')" class="date-edit-btn">
                     <i class="fas fa-edit"></i>
                 </button>
@@ -125,14 +166,14 @@ function viewUserDetails(username) {
         <div class="date-controls">
             <div class="date-control-item">
                 <span>Last Activity:</span>
-                <span>${userData.lastActivityDate ? formatDate(new Date(userData.lastActivityDate)) : 'Never'}</span>
+                <span>${lastActivity}</span>
                 <button onclick="updateLastActivity('${username}')" class="date-edit-btn">
                     <i class="fas fa-sync"></i>
                 </button>
             </div>
             <div class="date-control-item">
                 <span>Channel Join Date:</span>
-                <span>${userData.channelJoinDate ? formatDate(new Date(userData.channelJoinDate)) : 'Not joined'}</span>
+                <span>${channelJoinDate}</span>
                 <button onclick="editChannelJoinDate('${username}')" class="date-edit-btn">
                     <i class="fas fa-edit"></i>
                 </button>
@@ -149,6 +190,13 @@ function viewUserDetails(username) {
         </div>
     `;
 
+    const contactHTML = userData.contactInfo ? `
+        <div class="contact-section">
+            <h4><i class="fas fa-address-card"></i> Contact Information</h4>
+            <div class="contact-value">${userData.contactInfo}</div>
+        </div>
+    ` : '';
+
     const statsHTML = `
         <div class="stats-grid">
             <div class="stat-box balance">
@@ -159,7 +207,7 @@ function viewUserDetails(username) {
                 <div class="stat-value">$${userData.balance.toFixed(2)}</div>
                 <div class="stat-date">
                     <i class="far fa-clock"></i>
-                    Last updated: ${formatDate(new Date())}
+                    Last updated: ${currentDate}
                 </div>
             </div>
             
@@ -216,8 +264,84 @@ function viewUserDetails(username) {
         </div>
     `;
 
+    const referralHTML = `
+        <div class="referral-info">
+            <h4><i class="fas fa-users"></i> Referral Details</h4>
+            <div class="referral-details">
+                <div class="referral-item">
+                    <span>Referral Code:</span>
+                    <div class="code-container">
+                        <code>${userData.referralCode || 'None'}</code>
+                        <button onclick="copyReferralCode('${userData.referralCode}')" class="copy-btn">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="referral-item">
+                    <span>Telegram Bot Link:</span>
+                    <div class="link-container">
+                        <input type="text" readonly value="https://t.me/Ad_Cashbot?start=${userData.referralCode}" class="referral-link-input">
+                        <button onclick="copyReferralLink('${userData.referralCode}')" class="copy-btn">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="referral-item">
+                    <span>Referred By:</span>
+                    <strong>${userData.referredBy || 'None'}</strong>
+                </div>
+                <div class="referral-item">
+                    <span>Total Referrals:</span>
+                    <strong>${userData.referrals || 0}/5</strong>
+                </div>
+                <div class="referral-item">
+                    <span>Referral Earnings:</span>
+                    <strong>$${((userData.referrals || 0) * 0.05).toFixed(2)}</strong>
+                </div>
+            </div>
+            ${userData.referredUsers && userData.referredUsers.length > 0 ? `
+                <div class="referred-users">
+                    <h5>Referred Users:</h5>
+                    <ul>
+                        ${userData.referredUsers.map(user => `<li>${user}</li>`).join('')}
+                    </ul>
+                </div>
+            ` : ''}
+        </div>
+    `;
+
+    // Add action buttons section
+    const actionButtonsHTML = `
+        <div class="action-buttons">
+            <div class="button-group">
+                <button class="admin-btn" onclick="editBalance('${username}')">
+                    <i class="fas fa-edit"></i> Edit Balance
+                </button>
+                <button class="admin-btn warning" onclick="resetBalance()">
+                    <i class="fas fa-redo"></i> Reset Balance
+                </button>
+                <button class="admin-btn success" onclick="approveWithdrawal()">
+                    <i class="fas fa-check"></i> Approve Withdrawal
+                </button>
+            </div>
+            <div class="button-group">
+                <button class="admin-btn" onclick="editReferrals('${username}')">
+                    <i class="fas fa-users"></i> Edit Referrals
+                </button>
+                <button class="admin-btn warning" onclick="resetAdsWatched('${username}')">
+                    <i class="fas fa-eye-slash"></i> Reset Ads
+                </button>
+                <button class="admin-btn danger" onclick="deleteUser()">
+                    <i class="fas fa-trash"></i> Delete User
+                </button>
+            </div>
+        </div>
+    `;
+
     details.innerHTML = `
         ${userHeaderHTML}
+        ${actionButtonsHTML}
+        ${contactHTML}
         ${statsHTML}
         <div class="score-card">
             <div class="score-info">
@@ -264,22 +388,19 @@ function viewUserDetails(username) {
             </div>
         </div>
         
-        <div class="referral-info">
-            <h4><i class="fas fa-users"></i> Referral Details</h4>
-            <p>Referral Code: ${userData.referralCode || 'None'}</p>
-            <p>Referred By: ${userData.referredBy || 'None'}</p>
-            <p>Total Referrals: ${userData.referrals || 0}</p>
-            <p>Referral Earnings: $${((userData.referrals || 0) * 0.05).toFixed(2)}</p>
-            ${userData.referredUsers ? `
-                <div class="referred-users">
-                    <h5>Referred Users:</h5>
-                    <ul>
-                        ${userData.referredUsers.map(user => `<li>${user}</li>`).join('')}
-                    </ul>
-                </div>
-            ` : ''}
-        </div>
+        ${referralHTML}
     `;
+    
+    // Add copy functions
+    function copyReferralCode(code) {
+        navigator.clipboard.writeText(code);
+        showAdminToast('Referral code copied!', 'success');
+    }
+    
+    function copyReferralLink(code) {
+        navigator.clipboard.writeText(`https://t.me/Ad_Cashbot?start=${code}`);
+        showAdminToast('Telegram bot link copied!', 'success');
+    }
     
     modal.style.display = "flex";
 }
@@ -325,9 +446,13 @@ function editBalance(username) {
     const newBalance = prompt('Enter new balance:', userData.balance);
     
     if (newBalance !== null && !isNaN(newBalance)) {
-        userData.balance = parseFloat(newBalance);
-        userData.history.push(`Balance edited by admin to $${newBalance} at ${new Date().toLocaleString()}`);
-        localStorage.setItem(`userData_${username}`, JSON.stringify(userData));
+        updateUserData(username, {
+            balance: parseFloat(newBalance),
+            history: [
+                ...userData.history,
+                `Balance edited by admin to $${newBalance} at ${new Date().toLocaleString()}`
+            ]
+        });
         
         viewUserDetails(username);
         loadAllUsers();
@@ -369,30 +494,33 @@ function approveWithdrawal() {
     const userData = JSON.parse(localStorage.getItem(`userData_${currentUsername}`));
     const amount = prompt('Enter withdrawal amount to approve:', userData.balance);
     
-    if (amount !== null && !isNaN(amount) && parseFloat(amount) <= userData.balance) {
-        userData.balance -= parseFloat(amount);
-        userData.totalWithdrawn = (userData.totalWithdrawn || 0) + parseFloat(amount);
-        userData.lastWithdrawalDate = new Date().toISOString();
-        userData.history.push(`Withdrawal of $${amount} approved by admin at ${formatDate(new Date())}`);
-        localStorage.setItem(`userData_${currentUsername}`, JSON.stringify(userData));
+    if (amount && !isNaN(amount) && parseFloat(amount) <= userData.balance) {
+        const newBalance = userData.balance - parseFloat(amount);
+        const totalWithdrawn = (userData.totalWithdrawn || 0) + parseFloat(amount);
+        
+        updateUserData(currentUsername, {
+            balance: newBalance,
+            totalWithdrawn: totalWithdrawn,
+            lastWithdrawalDate: new Date().toISOString(),
+            history: [
+                ...userData.history,
+                `Withdrawal of $${amount} approved by admin at ${new Date().toLocaleString()}`
+            ]
+        });
         
         viewUserDetails(currentUsername);
         loadAllUsers();
         showAdminToast('Withdrawal approved successfully', 'success');
-    } else {
-        showAdminToast('Invalid withdrawal amount', 'error');
     }
 }
 
 function deleteUser() {
-    if (!currentUsername) return;
+    if (!currentUsername || !confirm(`Are you sure you want to delete ${currentUsername}?`)) return;
     
-    if (confirm(`Are you sure you want to delete ${currentUsername}? This action cannot be undone.`)) {
-        localStorage.removeItem(`userData_${currentUsername}`);
-        closeUserModal();
-        loadAllUsers();
-        showAdminToast('User deleted successfully', 'success');
-    }
+    localStorage.removeItem(`userData_${currentUsername}`);
+    closeUserModal();
+    loadAllUsers();
+    showAdminToast('User deleted successfully', 'success');
 }
 
 // Admin Toast Notification
@@ -444,7 +572,8 @@ document.getElementById("searchUser").addEventListener("input", (e) => {
     const searchTerm = e.target.value.toLowerCase();
     const users = getAllUsers();
     const filteredUsers = users.filter(user => 
-        user.username.toLowerCase().includes(searchTerm)
+        user.username.toLowerCase().includes(searchTerm) ||
+        (user.contactInfo && user.contactInfo.toLowerCase().includes(searchTerm))
     );
     displayUsers(filteredUsers);
 });
@@ -453,8 +582,18 @@ document.getElementById("searchUser").addEventListener("input", (e) => {
 document.addEventListener("DOMContentLoaded", () => {
     if (checkAdminAuth()) {
         loadAllUsers();
-        setupStorageListener();
-        setupAutoRefresh();
+        setupRealtimeMonitoring();
+        
+        // Add search functionality
+        document.getElementById("searchUser").addEventListener("input", (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const users = getAllUsers();
+            const filteredUsers = users.filter(user => 
+                user.username.toLowerCase().includes(searchTerm) ||
+                (user.contactInfo && user.contactInfo.toLowerCase().includes(searchTerm))
+            );
+            displayUsers(filteredUsers);
+        });
     }
 });
 
@@ -548,20 +687,179 @@ function calculateUserScore(userData) {
     return Math.round(score);
 }
 
-// Add this function to listen for storage changes
-function setupStorageListener() {
-    window.addEventListener('storage', (e) => {
-        // Check if the change is related to user data
-        if (e.key && e.key.startsWith('userData_')) {
-            loadAllUsers(); // Refresh the users list
-            showAdminToast('User data updated', 'info');
+// Update the auto-refresh function to check every 1 second
+function setupAutoRefresh() {
+    // Check every 1 second
+    setInterval(() => {
+        checkForNewUsers();
+    }, 1000); // Changed from 5000 to 1000 milliseconds
+}
+
+// Update the checkForNewUsers function to be more efficient
+function checkForNewUsers() {
+    const users = getAllUsers();
+    const lastKnownUsers = JSON.parse(localStorage.getItem('lastKnownUsers') || '[]');
+    
+    // Find new users by comparing with last known users
+    const newUsers = users.filter(user => 
+        !lastKnownUsers.some(known => known.username === user.username)
+    );
+    
+    if (newUsers.length > 0) {
+        // Update display with new users highlighted
+        displayUsers(users, newUsers);
+        
+        // Show notifications for new users
+        newUsers.forEach(user => {
+            showAdminToast(`New user joined: ${user.username}`, 'info');
+        });
+        
+        // Update last known users immediately
+        localStorage.setItem('lastKnownUsers', JSON.stringify(users));
+        updateAdminStats(users);
+    } else {
+        // Only update if there are changes in existing users
+        const hasChanges = users.some(user => {
+            const lastKnownUser = lastKnownUsers.find(known => known.username === user.username);
+            return !lastKnownUser || JSON.stringify(user) !== JSON.stringify(lastKnownUser);
+        });
+        
+        if (hasChanges) {
+            displayUsers(users);
+            updateAdminStats(users);
+            localStorage.setItem('lastKnownUsers', JSON.stringify(users));
         }
+    }
+}
+
+// Add this to handle page visibility
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+        loadAllUsers(); // Refresh when page becomes visible
+    }
+});
+
+// Add WebSocket-like functionality using localStorage events
+function setupRealtimeUpdates() {
+    // Listen for any changes in localStorage
+    window.addEventListener('storage', (e) => {
+        if (e.key && e.key.startsWith('userData_')) {
+            handleRealtimeUpdate(e.key);
+        }
+    });
+
+    // Set up periodic polling as backup
+    setInterval(() => {
+        checkForUpdates();
+    }, 1000);
+}
+
+// Handle real-time updates
+function handleRealtimeUpdate(key) {
+    const username = key.replace('userData_', '');
+    const userData = JSON.parse(localStorage.getItem(key));
+    
+    // Update user in table
+    updateUserRow(username, userData);
+    
+    // Update stats
+    updateAdminStats(getAllUsers());
+    
+    // Update modal if open
+    if (currentUsername === username) {
+        viewUserDetails(username);
+    }
+    
+    // Show notification
+    showAdminToast(`User ${username} data updated`, 'info');
+}
+
+// Update specific user row without refreshing entire table
+function updateUserRow(username, userData) {
+    const tbody = document.getElementById("usersTableBody");
+    const existingRow = [...tbody.getElementsByTagName('tr')].find(row => 
+        row.cells[0].textContent.trim() === username
+    );
+    
+    if (existingRow) {
+        const joinDate = userData.joinDate ? formatDate(new Date(userData.joinDate)) : 'Unknown';
+        
+        existingRow.innerHTML = `
+            <td>
+                ${username}
+                ${userData.contactInfo ? `
+                    <div class="contact-info">
+                        <i class="fas fa-address-card"></i>
+                        ${userData.contactInfo}
+                    </div>
+                ` : ''}
+            </td>
+            <td>$${userData.balance.toFixed(2)}</td>
+            <td>$${((userData.balance || 0) + (userData.totalWithdrawn || 0)).toFixed(2)}</td>
+            <td>${userData.adsWatched || 0}</td>
+            <td>${userData.referrals || 0}</td>
+            <td>${joinDate}</td>
+            <td>
+                <button onclick="viewUserDetails('${username}')" class="admin-btn">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </td>
+        `;
+        
+        // Add highlight animation
+        existingRow.classList.add('row-updated');
+        setTimeout(() => {
+            existingRow.classList.remove('row-updated');
+        }, 2000);
+    } else {
+        // New user - refresh the whole table
+        loadAllUsers();
+    }
+}
+
+// Check for any updates
+function checkForUpdates() {
+    const users = getAllUsers();
+    const lastKnownState = JSON.parse(localStorage.getItem('lastKnownState') || '{}');
+    
+    users.forEach(user => {
+        const lastState = lastKnownState[user.username];
+        if (!lastState || JSON.stringify(user) !== JSON.stringify(lastState)) {
+            handleRealtimeUpdate(`userData_${user.username}`);
+        }
+    });
+    
+    // Update last known state
+    const newState = {};
+    users.forEach(user => {
+        newState[user.username] = user;
+    });
+    localStorage.setItem('lastKnownState', JSON.stringify(newState));
+}
+
+// Update the addHistoryEntry function
+function addHistoryEntry(userData, message) {
+    if (!userData.history) {
+        userData.history = [];
+    }
+    userData.history.push({
+        message: message,
+        timestamp: getCurrentDate().toISOString()
     });
 }
 
-// Add periodic refresh
-function setupAutoRefresh() {
+// Add real-time monitoring
+function setupRealtimeMonitoring() {
     setInterval(() => {
-        loadAllUsers();
-    }, 30000); // Refresh every 30 seconds
+        const users = getAllUsers();
+        updateAdminStats(users);
+        checkForNewUsers();
+    }, 1000);
+}
+
+function updateUserData(username, updates) {
+    const userData = JSON.parse(localStorage.getItem(`userData_${username}`));
+    const updatedData = { ...userData, ...updates };
+    localStorage.setItem(`userData_${username}`, JSON.stringify(updatedData));
+    return updatedData;
 } 
