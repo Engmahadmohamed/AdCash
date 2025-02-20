@@ -227,8 +227,7 @@ function watchAd() {
             });
             
             document.getElementById("loadingOverlay").style.display = "none";
-        }, 3000); // Wait for 3 seconds to simulate ad completion
-
+        }, 3000);
     } catch (error) {
         console.error("Ad failed to load:", error);
         document.getElementById("loadingOverlay").style.display = "none";
