@@ -608,4 +608,102 @@ body {
     align-items: center;
     gap: 5px;
     min-width: 200px;
+}
+
+/* Referral Info Styles */
+.referral-info {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-top: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.referral-info h4 {
+    color: var(--admin-primary);
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.referral-info p {
+    margin: 10px 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 8px;
+    background: #f8f9fa;
+    border-radius: 5px;
+}
+
+.referred-users {
+    margin-top: 15px;
+}
+
+.referred-users h5 {
+    color: var(--admin-secondary);
+    margin-bottom: 10px;
+}
+
+.referred-users ul {
+    list-style: none;
+    padding: 0;
+}
+
+.referred-users li {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+    color: var(--text-secondary);
+}
+
+/* Date Controls Styles */
+.date-controls {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin: 20px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.date-control-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.date-control-item:last-child {
+    border-bottom: none;
+}
+
+.date-edit-btn {
+    background: transparent;
+    border: none;
+    color: var(--admin-secondary);
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.date-edit-btn:hover {
+    color: var(--admin-primary);
+    background: rgba(0,0,0,0.05);
+}
+
+.active-status {
+    color: var(--admin-success);
+    font-weight: 500;
+}
+
+.inactive-status {
+    color: var(--admin-danger);
+    font-weight: 500;
+}
+
+.join-date {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 } 

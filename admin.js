@@ -88,7 +88,6 @@ function viewUserDetails(username) {
     const modal = document.getElementById("userDetailsModal");
     const details = document.getElementById("userDetails");
     
-    // Add join date if it doesn't exist
     if (!userData.joinDate) {
         userData.joinDate = new Date().toISOString();
         localStorage.setItem(`userData_${username}`, JSON.stringify(userData));
@@ -101,6 +100,35 @@ function viewUserDetails(username) {
             <div class="join-date">
                 <i class="far fa-calendar-alt"></i>
                 Joined: ${formatDate(new Date(userData.joinDate))}
+                <button onclick="editJoinDate('${username}')" class="date-edit-btn">
+                    <i class="fas fa-edit"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="date-controls">
+            <div class="date-control-item">
+                <span>Last Activity:</span>
+                <span>${userData.lastActivityDate ? formatDate(new Date(userData.lastActivityDate)) : 'Never'}</span>
+                <button onclick="updateLastActivity('${username}')" class="date-edit-btn">
+                    <i class="fas fa-sync"></i>
+                </button>
+            </div>
+            <div class="date-control-item">
+                <span>Channel Join Date:</span>
+                <span>${userData.channelJoinDate ? formatDate(new Date(userData.channelJoinDate)) : 'Not joined'}</span>
+                <button onclick="editChannelJoinDate('${username}')" class="date-edit-btn">
+                    <i class="fas fa-edit"></i>
+                </button>
+            </div>
+            <div class="date-control-item">
+                <span>Account Status:</span>
+                <span class="${userData.isActive ? 'active-status' : 'inactive-status'}">
+                    ${userData.isActive ? 'Active' : 'Inactive'}
+                </span>
+                <button onclick="toggleAccountStatus('${username}')" class="date-edit-btn">
+                    <i class="fas fa-power-off"></i>
+                </button>
             </div>
         </div>
         
@@ -175,6 +203,22 @@ function viewUserDetails(username) {
                     `;
                 }).join('')}
             </div>
+        </div>
+        
+        <div class="referral-info">
+            <h4><i class="fas fa-users"></i> Referral Details</h4>
+            <p>Referral Code: ${userData.referralCode || 'None'}</p>
+            <p>Referred By: ${userData.referredBy || 'None'}</p>
+            <p>Total Referrals: ${userData.referrals || 0}</p>
+            <p>Referral Earnings: $${((userData.referrals || 0) * 0.05).toFixed(2)}</p>
+            ${userData.referredUsers ? `
+                <div class="referred-users">
+                    <h5>Referred Users:</h5>
+                    <ul>
+                        ${userData.referredUsers.map(user => `<li>${user}</li>`).join('')}
+                    </ul>
+                </div>
+            ` : ''}
         </div>
     `;
     
@@ -339,4 +383,66 @@ document.addEventListener("DOMContentLoaded", () => {
     if (checkAdminAuth()) {
         loadAllUsers();
     }
-}); 
+});
+
+// Add this function to edit user join date
+function editJoinDate(username) {
+    const userData = JSON.parse(localStorage.getItem(`userData_${username}`));
+    const currentDate = new Date(userData.joinDate || new Date());
+    const newDate = prompt('Enter new join date (YYYY-MM-DD):', currentDate.toISOString().split('T')[0]);
+    
+    if (newDate && !isNaN(new Date(newDate))) {
+        userData.joinDate = new Date(newDate).toISOString();
+        userData.history.push(`Join date edited by admin to ${formatDate(new Date(newDate))} at ${formatDate(new Date())}`);
+        localStorage.setItem(`userData_${username}`, JSON.stringify(userData));
+        
+        viewUserDetails(username);
+        showAdminToast('Join date updated successfully', 'success');
+    } else {
+        showAdminToast('Invalid date format', 'error');
+    }
+}
+
+// Update last activity date
+function updateLastActivity(username) {
+    const userData = JSON.parse(localStorage.getItem(`userData_${username}`));
+    userData.lastActivityDate = new Date().toISOString();
+    userData.history.push(`Last activity updated by admin at ${formatDate(new Date())}`);
+    localStorage.setItem(`userData_${username}`, JSON.stringify(userData));
+    
+    viewUserDetails(username);
+    showAdminToast('Last activity updated', 'success');
+}
+
+// Edit channel join date
+function editChannelJoinDate(username) {
+    const userData = JSON.parse(localStorage.getItem(`userData_${username}`));
+    const currentDate = new Date(userData.channelJoinDate || new Date());
+    const newDate = prompt('Enter new channel join date (YYYY-MM-DD):', 
+        currentDate.toISOString().split('T')[0]);
+    
+    if (newDate && !isNaN(new Date(newDate))) {
+        userData.channelJoinDate = new Date(newDate).toISOString();
+        userData.hasJoinedChannel = true;
+        userData.history.push(`Channel join date edited by admin to ${formatDate(new Date(newDate))}`);
+        localStorage.setItem(`userData_${username}`, JSON.stringify(userData));
+        
+        viewUserDetails(username);
+        showAdminToast('Channel join date updated', 'success');
+    } else {
+        showAdminToast('Invalid date format', 'error');
+    }
+}
+
+// Toggle account status
+function toggleAccountStatus(username) {
+    const userData = JSON.parse(localStorage.getItem(`userData_${username}`));
+    userData.isActive = !userData.isActive;
+    userData.history.push(
+        `Account ${userData.isActive ? 'activated' : 'deactivated'} by admin at ${formatDate(new Date())}`
+    );
+    localStorage.setItem(`userData_${username}`, JSON.stringify(userData));
+    
+    viewUserDetails(username);
+    showAdminToast(`Account ${userData.isActive ? 'activated' : 'deactivated'}`, 'success');
+} 

@@ -68,7 +68,6 @@ function login() {
         return;
     }
     
-    // You can add more specific phone validation if needed
     if (!/^\d{9,12}$/.test(phoneNumber)) {
         showToast({
             message: "Please enter a valid phone number.",
@@ -80,6 +79,7 @@ function login() {
     currentUser = phoneNumber;
     localStorage.setItem("username", currentUser);
     loadUserData();
+    checkReferral();
     checkAuthState();
     checkChannelMembership();
 }
@@ -104,6 +104,9 @@ function loadUserData() {
             adsWatched: 0,
             history: [],
             referrals: 0,
+            referralCode: generateReferralCode(currentUser),
+            referredUsers: [],
+            referredBy: null,
             totalWithdrawn: 0,
             hasJoinedChannel: false
         };
@@ -446,6 +449,53 @@ function checkChannelMembership() {
     if (!userData.hasJoinedChannel) {
         showChannelJoinModal();
     }
+}
+
+// Add this function to check for referral code on login/signup
+function checkReferral() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const referralCode = urlParams.get('ref');
+    
+    if (referralCode) {
+        // Find the referrer user
+        const allUsers = getAllUsers();
+        const referrer = allUsers.find(user => user.referralCode === referralCode);
+        
+        if (referrer && referrer.username !== currentUser) {
+            const referrerData = JSON.parse(localStorage.getItem(`userData_${referrer.username}`));
+            
+            // Check if this user hasn't been counted as a referral before
+            if (!referrerData.referredUsers) {
+                referrerData.referredUsers = [];
+            }
+            
+            if (!referrerData.referredUsers.includes(currentUser)) {
+                // Add referral bonus
+                referrerData.referrals = (referrerData.referrals || 0) + 1;
+                referrerData.balance += 0.05; // Referral bonus
+                referrerData.referredUsers.push(currentUser);
+                referrerData.lastReferralDate = new Date().toISOString();
+                referrerData.history.push(`Earned $0.05 from referral: ${currentUser} at ${new Date().toLocaleString()}`);
+                
+                // Save referrer's data
+                localStorage.setItem(`userData_${referrer.username}`, JSON.stringify(referrerData));
+                
+                // Mark current user as referred
+                userData.referredBy = referrer.username;
+                saveUserData();
+                
+                showToast({
+                    message: "Welcome! You were referred by " + referrer.username,
+                    type: "success"
+                });
+            }
+        }
+    }
+}
+
+// Generate a unique referral code
+function generateReferralCode(username) {
+    return btoa(username + '_' + Date.now()).replace(/[^a-zA-Z0-9]/g, '').substr(0, 8);
 }
 
 // Initialize app
