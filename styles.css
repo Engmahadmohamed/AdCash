@@ -84,14 +84,6 @@ body {
     margin: 0 auto;
 }
 
-.auth-form input {
-    padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: var(--border-radius);
-    font-size: 16px;
-    width: 100%;
-}
-
 /* Balance Card */
 .balance-card {
     background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
@@ -374,6 +366,32 @@ body {
 .needed-balance {
     color: var(--error-color);
     font-weight: 600;
+}
+
+.telegram-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 12px;
+    background-color: #0088cc;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.telegram-btn:hover {
+    background-color: #006699;
+}
+
+.telegram-btn img {
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
 }
 
 @keyframes bounce {
