@@ -145,9 +145,10 @@ function saveUserData() {
 
 // UI Updates
 function updateUI() {
-    document.getElementById("balance").textContent = "$" + userData.balance.toFixed(2);
-    document.getElementById("todayEarnings").textContent = "$" + userData.todayEarnings.toFixed(2);
-    document.getElementById("adsWatched").textContent = userData.adsWatched;
+    document.getElementById("balance").textContent = `$${userData.balance.toFixed(2)}`;
+    document.getElementById("adsWatched").textContent = userData.adsWatched || 0;
+    document.getElementById("todayEarnings").textContent = `$${(userData.todayEarnings || 0).toFixed(2)}`;
+    updateAdCooldown();
     updateHistory();
     document.getElementById("referralLink").textContent = "https://t.me/Ad_Cashbot?start=" + encodeURIComponent(currentUser);
     document.getElementById("profileUsername").textContent = currentUser;
@@ -170,161 +171,99 @@ function updateHistory() {
 
 // Ad Functions
 function watchAd() {
+    // Check if user has joined channel
     if (!userData.hasJoinedChannel) {
+        showToast({
+            message: "Please join our Telegram channel first!",
+            type: "error"
+        });
         showChannelJoinModal();
         return;
     }
-    // Show loading state
-    showLoadingOverlay();
-    
-    // Randomly choose one of the three ad types
-    const adType = Math.floor(Math.random() * 3);
-    
-    try {
-        switch(adType) {
-            case 0:
-                // Rewarded interstitial
-                show_8980914()
-                    .then(() => {
-                        rewardUser("Rewarded Interstitial");
-                    })
-                    .catch(handleAdError)
-                    .finally(hideLoadingOverlay);
-                break;
-                
-            case 1:
-                // Rewarded Popup
-                show_8980914('pop')
-                    .then(() => {
-                        rewardUser("Rewarded Popup");
-                    })
-                    .catch(handleAdError)
-                    .finally(hideLoadingOverlay);
-                break;
-                
-            case 2:
-                // In-App Interstitial
-                show_8980914({ 
-                    type: 'inApp', 
-                    inAppSettings: { 
-                        frequency: 2, 
-                        capping: 0.1, 
-                        interval: 30, 
-                        timeout: 5, 
-                        everyPage: false 
-                    } 
-                })
-                    .then(() => {
-                        rewardUser("In-App Interstitial");
-                    })
-                    .catch(handleAdError)
-                    .finally(hideLoadingOverlay);
-                break;
-        }
-    } catch (error) {
-        handleAdError(error);
-        hideLoadingOverlay();
-    }
-}
 
-// Helper functions for loading overlay
-function showLoadingOverlay() {
-    const overlay = document.getElementById("loadingOverlay");
-    if (overlay) {
-        overlay.style.display = "flex";
-    }
-}
+    // Show loading overlay
+    document.getElementById("loadingOverlay").style.display = "flex";
 
-function hideLoadingOverlay() {
-    const overlay = document.getElementById("loadingOverlay");
-    if (overlay) {
-        overlay.style.display = "none";
-    }
-}
-
-// Improved error handling for ads
-function handleAdError(error) {
-    console.error('Ad Error:', error);
+    // Check cooldown
+    const lastAdTime = userData.lastAdWatch ? new Date(userData.lastAdWatch) : null;
+    const now = new Date();
     
-    let errorMessage = "Unable to load ad. Please try again later.";
-    
-    // Check for specific error types
-    if (error.message && error.message.includes("timeout")) {
-        errorMessage = "Ad request timed out. Please check your internet connection.";
-    } else if (error.message && error.message.includes("blocked")) {
-        errorMessage = "Please disable your ad blocker to watch ads.";
-    } else if (error.message && error.message.includes("not available")) {
-        errorMessage = "No ads available right now. Please try again later.";
-    }
-    
-    showToast({
-        message: errorMessage,
-        type: "error",
-        duration: 3000
-    });
-}
-
-// Function to reward user after watching an ad
-function rewardUser(adType) {
-    try {
-        userData.balance += 0.01;
-        userData.todayEarnings += 0.01;
-        userData.adsWatched += 1;
-        
-        const timestamp = new Date().toLocaleTimeString();
-        userData.history.push(`Watched ${adType} ad at ${timestamp} (+$0.01)`);
-        
-        saveUserData();
-        updateUI();
-        
+    if (lastAdTime && (now - lastAdTime) < 30000) { // 30 seconds cooldown
+        document.getElementById("loadingOverlay").style.display = "none";
         showToast({
-            message: "Ad finished, you earned $0.01!",
-            type: "success",
-            duration: 2000
+            message: "Please wait 30 seconds between ads",
+            type: "warning"
         });
+        return;
+    }
+
+    // Initialize ad SDK
+    try {
+        window.show_8980914();
+        
+        // Update user data after successful ad view
+        setTimeout(() => {
+            userData.balance = (userData.balance || 0) + 0.01;
+            userData.adsWatched = (userData.adsWatched || 0) + 1;
+            userData.lastAdWatch = now.toISOString();
+            userData.todayEarnings = (userData.todayEarnings || 0) + 0.01;
+            
+            // Add to history
+            if (!userData.history) userData.history = [];
+            userData.history.unshift({
+                type: 'ad',
+                amount: 0.01,
+                timestamp: now.toISOString()
+            });
+
+            // Save data
+            saveUserData();
+            updateUI();
+
+            // Show success message
+            showToast({
+                message: "Earned $0.01 from watching ad!",
+                type: "success"
+            });
+            
+            document.getElementById("loadingOverlay").style.display = "none";
+        }, 3000); // Wait for 3 seconds to simulate ad completion
+
     } catch (error) {
-        console.error('Reward Error:', error);
+        console.error("Ad failed to load:", error);
+        document.getElementById("loadingOverlay").style.display = "none";
         showToast({
-            message: "Error processing reward. Please contact support.",
-            type: "error",
-            duration: 3000
+            message: "Failed to load ad. Please try again.",
+            type: "error"
         });
     }
 }
 
-// Ad Integration Functions
-/*
-function showRewardedInterstitial() {
-    show_8980914().then(() => {
-        alert('You have seen a rewarded interstitial ad!');
-    });
-}
+// Add cooldown timer display
+function updateAdCooldown() {
+    const watchAdBtn = document.querySelector('.action-button.primary');
+    if (!watchAdBtn) return;
 
-function showRewardedPopup() {
-    show_8980914('pop').then(() => {
-        alert('You have seen a rewarded popup ad!');
-    }).catch(e => {
-        console.error('Error showing rewarded popup ad:', e);
-    });
+    const lastAdTime = userData.lastAdWatch ? new Date(userData.lastAdWatch) : null;
+    const now = new Date();
+    
+    if (lastAdTime && (now - lastAdTime) < 30000) {
+        const remainingTime = Math.ceil((30000 - (now - lastAdTime)) / 1000);
+        watchAdBtn.disabled = true;
+        watchAdBtn.innerHTML = `
+            <i class="fas fa-clock"></i>
+            Wait ${remainingTime}s
+            <small>Cooldown</small>
+        `;
+    } else {
+        watchAdBtn.disabled = false;
+        watchAdBtn.innerHTML = `
+            <i class="fas fa-play"></i>
+            Watch Ad
+            <small>Earn $0.01 per ad</small>
+        `;
+    }
 }
-
-function showInAppInterstitial() {
-    show_8980914({
-        type: 'inApp',
-        inAppSettings: {
-            frequency: 2,
-            capping: 0.1,
-            interval: 30,
-            timeout: 5,
-            everyPage: false
-        }
-    }).then(() => {
-        alert('In-App interstitial ad was shown!');
-    }).catch(e => {
-        console.error('Error showing in-app interstitial ad:', e);
-    });
-}
-*/
 
 // Navigation Functions
 function showScreen(screenId) {
@@ -566,4 +505,7 @@ function verifyChannelJoin() {
         type: "success",
         duration: 3000
     });
-} 
+}
+
+// Add cooldown timer interval
+setInterval(updateAdCooldown, 1000); 
