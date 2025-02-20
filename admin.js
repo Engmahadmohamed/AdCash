@@ -49,14 +49,24 @@ function displayUsers(users) {
     const tbody = document.getElementById("usersTableBody");
     tbody.innerHTML = "";
 
+    // Sort users by join date (newest first)
+    users.sort((a, b) => {
+        const dateA = new Date(a.joinDate || 0);
+        const dateB = new Date(b.joinDate || 0);
+        return dateB - dateA;
+    });
+
     users.forEach(user => {
         const tr = document.createElement("tr");
+        const joinDate = user.joinDate ? formatDate(new Date(user.joinDate)) : 'Unknown';
+        
         tr.innerHTML = `
             <td>${user.username}</td>
             <td>$${user.balance.toFixed(2)}</td>
             <td>$${((user.balance || 0) + (user.totalWithdrawn || 0)).toFixed(2)}</td>
             <td>${user.adsWatched || 0}</td>
             <td>${user.referrals || 0}</td>
+            <td>${joinDate}</td>
             <td>
                 <button onclick="viewUserDetails('${user.username}')" class="admin-btn">
                     <i class="fas fa-eye"></i>
@@ -65,6 +75,12 @@ function displayUsers(users) {
         `;
         tbody.appendChild(tr);
     });
+
+    // Update the total count
+    const totalCount = document.getElementById("totalUsers");
+    if (totalCount) {
+        totalCount.textContent = users.length;
+    }
 }
 
 // User Management Functions
@@ -437,6 +453,8 @@ document.getElementById("searchUser").addEventListener("input", (e) => {
 document.addEventListener("DOMContentLoaded", () => {
     if (checkAdminAuth()) {
         loadAllUsers();
+        setupStorageListener();
+        setupAutoRefresh();
     }
 });
 
@@ -528,4 +546,22 @@ function calculateUserScore(userData) {
     }
     
     return Math.round(score);
+}
+
+// Add this function to listen for storage changes
+function setupStorageListener() {
+    window.addEventListener('storage', (e) => {
+        // Check if the change is related to user data
+        if (e.key && e.key.startsWith('userData_')) {
+            loadAllUsers(); // Refresh the users list
+            showAdminToast('User data updated', 'info');
+        }
+    });
+}
+
+// Add periodic refresh
+function setupAutoRefresh() {
+    setInterval(() => {
+        loadAllUsers();
+    }, 30000); // Refresh every 30 seconds
 } 
