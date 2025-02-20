@@ -1,116 +1,680 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src='//whephiwums.com/vignette.min.js' data-zone='8980914' data-sdk='show_8980914'></script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>AdCash</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome CDN for professional icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Ad SDK script -->
+  <script src="//whephiwums.com/vignette.min.js" data-zone="8980914" data-sdk="show_8980914"></script>
+  <title>Earn App</title>
+  <style>
+    /* === Base Mobile-First Styles === */
+    :root {
+      --background-color: #F5F6FA;
+      --primary-color: #007BFF;      /* Bright Blue */
+      --secondary-color: #2C3E50;
+      --accent-color: #FFC107;
+      --text-color: #2C3E50;
+      --card-bg: #FFFFFF;
+      --input-bg: #FFFFFF;
+      --border-radius: 8px;
+      --box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      --spacing: 16px;
+      --small-spacing: 8px;
+      --font-base: 14px;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      background: var(--background-color);
+      color: var(--text-color);
+      font-family: 'Poppins', sans-serif;
+      font-size: var(--font-base);
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    /* Container */
+    .app {
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+      padding: var(--small-spacing);
+    }
+    
+    /* Header / Status Bar */
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--small-spacing);
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      margin-bottom: var(--small-spacing);
+    }
+    .status-bar .title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: var(--secondary-color);
+    }
+    .status-bar .logout {
+      font-size: 0.8rem;
+      background: transparent;
+      border: none;
+      color: var(--primary-color);
+      cursor: pointer;
+    }
+    
+    /* Authentication Screen */
+    .auth-content h1 {
+      font-size: 1.5rem;
+      margin-bottom: var(--small-spacing);
+      color: var(--secondary-color);
+    }
+    .auth-form input[type="text"] {
+      width: 100%;
+      padding: var(--small-spacing);
+      background: var(--input-bg);
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+      font-size: 0.9rem;
+      margin-bottom: var(--small-spacing);
+    }
+    .auth-btn {
+      width: 100%;
+      padding: var(--small-spacing);
+      background: var(--primary-color);
+      border: none;
+      border-radius: var(--border-radius);
+      color: var(--card-bg);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .auth-btn:hover {
+      background: #2980b9;
+    }
+    
+    /* Balance Card & Stats */
+    .balance-card {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      padding: var(--small-spacing);
+      text-align: center;
+      margin-bottom: var(--small-spacing);
+    }
+    .balance-card .label {
+      font-size: 0.8rem;
+      color: #777;
+    }
+    .balance-card .amount {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin: var(--small-spacing) 0;
+      color: var(--secondary-color);
+    }
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      margin-top: var(--small-spacing);
+    }
+    .stat .value {
+      font-size: 1rem;
+      font-weight: bold;
+      color: var(--secondary-color);
+    }
+    .stat .caption {
+      font-size: 0.7rem;
+      color: #888;
+    }
+    
+    /* Action Buttons */
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: var(--small-spacing);
+      margin-bottom: var(--small-spacing);
+    }
+    .action-button {
+      width: 100%;
+      padding: var(--small-spacing);
+      background: var(--primary-color);
+      border: none;
+      border-radius: var(--border-radius);
+      color: var(--card-bg);
+      font-size: 0.9rem;
+      cursor: pointer;
+      box-shadow: var(--box-shadow);
+      transition: background 0.2s;
+    }
+    .action-button:hover {
+      background: #2980b9;
+    }
+    .action-button small {
+      font-size: 0.7rem;
+      display: block;
+      margin-top: 4px;
+    }
+    
+    /* Ad Demo Section */
+    .ad-demo {
+      display: flex;
+      flex-direction: column;
+      gap: var(--small-spacing);
+      margin-bottom: var(--small-spacing);
+    }
+    
+    /* History Section */
+    .history-section {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: var(--small-spacing);
+      box-shadow: var(--box-shadow);
+      margin-bottom: var(--small-spacing);
+    }
+    .history-section h3 {
+      font-size: 1rem;
+      margin-bottom: var(--small-spacing);
+      color: var(--secondary-color);
+    }
+    .history-list {
+      max-height: 120px;
+      overflow-y: auto;
+    }
+    .history-item {
+      border-bottom: 1px solid #eee;
+      padding: var(--small-spacing) 0;
+      font-size: 0.8rem;
+    }
+    
+    /* Referral Section */
+    .referral-card {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: var(--small-spacing);
+      box-shadow: var(--box-shadow);
+      text-align: center;
+      margin-bottom: var(--small-spacing);
+    }
+    .referral-card h3 {
+      font-size: 1rem;
+      margin-bottom: var(--small-spacing);
+      color: var(--secondary-color);
+    }
+    .referral-info {
+      font-size: 0.8rem;
+      margin-bottom: var(--small-spacing);
+    }
+    .referral-link {
+      display: block;
+      width: 100%;
+      padding: var(--small-spacing);
+      background: var(--input-bg);
+      border: 1px dashed var(--primary-color);
+      border-radius: var(--border-radius);
+      font-family: monospace;
+      color: var(--secondary-color);
+      text-align: center;
+      margin-bottom: var(--small-spacing);
+      user-select: all;
+      font-size: 0.8rem;
+    }
+    .copy-button {
+      width: 100%;
+      padding: var(--small-spacing);
+      background: var(--primary-color);
+      border: none;
+      border-radius: var(--border-radius);
+      font-size: 0.9rem;
+      color: var(--card-bg);
+      cursor: pointer;
+      transition: filter 0.3s;
+    }
+    .copy-button:hover {
+      filter: brightness(110%);
+    }
+    
+    /* Navigation Banner */
+    .nav-banner {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      max-width: 480px;
+      background: var(--card-bg);
+      box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
+      padding: var(--small-spacing) 0;
+      transition: padding 0.3s;
+    }
+    .nav-button {
+      background: transparent;
+      border: none;
+      font-size: 0.9rem;
+      color: var(--secondary-color);
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+    .nav-button.active {
+      color: var(--primary-color);
+      font-weight: bold;
+    }
+    .nav-button i {
+      margin-right: 6px;
+      font-size: 1.2rem;
+    }
+    
+    /* Withdraw Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      padding: var(--small-spacing);
+      width: 90%;
+      max-width: 400px;
+    }
+    
+    /* Modal Buttons */
+    .primary-btn, .secondary-btn {
+      width: 100%;
+      padding: var(--small-spacing);
+      border: none;
+      border-radius: var(--border-radius);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin-bottom: var(--small-spacing);
+    }
+    .primary-btn {
+      background: #27AE60;
+      color: #fff;
+    }
+    .primary-btn:hover {
+      background: #219653;
+    }
+    .secondary-btn {
+      background: transparent;
+      border: 1px solid var(--primary-color);
+      color: var(--primary-color);
+    }
+    .secondary-btn:hover {
+      background: var(--primary-color);
+      color: var(--card-bg);
+    }
+    
+    /* === Media Queries === */
+    @media (min-width: 768px) {
+      :root { --font-base: 16px; }
+      .app { padding: var(--spacing); }
+      .status-bar .title { font-size: 1.2rem; }
+      .balance-card .amount { font-size: 1.75rem; }
+      .nav-button { font-size: 1rem; }
+    }
+    @media (min-width: 1024px) {
+      :root { --font-base: 18px; }
+      .app { max-width: 960px; }
+      .auth-content h1 { font-size: 1.75rem; }
+      .balance-card .amount { font-size: 2rem; }
+    }
+  </style>
 </head>
 <body>
-    <div class="app">
-        <!-- Status Bar -->
-        <div class="status-bar">
-            <div class="time"></div>
-            <div class="icons">
-                <span>📶</span>
-                <span>🔋</span>
-            </div>
+  <div class="app">
+    <!-- Header / Status Bar -->
+    <header class="status-bar">
+      <div class="title">Earn App</div>
+      <button class="logout" onclick="logout()">Logout</button>
+    </header>
+    
+    <!-- Authentication Screen -->
+    <section class="screen" id="authScreen">
+      <div class="auth-content">
+        <h1>Login</h1>
+        <div class="auth-form">
+          <input type="text" id="usernameInput" placeholder="Enter username">
+          <button class="auth-btn" onclick="login()">Login</button>
         </div>
-
-        <!-- Auth Screen -->
-        <div class="screen" id="authScreen">
-            <div class="auth-content">
-                <h1>AdCash</h1>
-                <p>Watch ads, earn money</p>
-                <div class="auth-form">
-                    <button class="telegram-btn" onclick="loginWithTelegram()">
-                        <img src="https://telegram.org/img/t_logo.png" alt="Telegram" style="width: 24px; height: 24px; margin-right: 8px;">
-                        Login with @Ad_Cashbot
-                    </button>
-                </div>
+      </div>
+    </section>
+    
+    <!-- Navigation Screen -->
+    <section class="screen" id="navScreen" style="display: none;">
+      <!-- Home Screen -->
+      <div id="homeScreen" class="sub-screen">
+        <div class="balance-card">
+          <div class="label">Available Balance</div>
+          <div class="amount" id="balance">$0.00</div>
+          <div class="stats">
+            <div class="stat">
+              <div class="value" id="todayEarnings">$0.00</div>
+              <div class="caption">Today's Earnings</div>
             </div>
+            <div class="stat">
+              <div class="value" id="adsWatched">0</div>
+              <div class="caption">Ads Watched</div>
+            </div>
+          </div>
         </div>
-
-        <!-- Main Screen -->
-        <div class="screen" id="mainScreen" style="display: none;">
-            <!-- Balance Card -->
-            <div class="balance-card">
-                <small>Available Balance</small>
-                <h2>$<span id="balance">0.00</span></h2>
-                <div class="stats">
-                    <div>
-                        <small>Today's Earnings</small>
-                        <p>$<span id="todayEarnings">0.00</span></p>
-                    </div>
-                    <div>
-                        <small>Ads Watched</small>
-                        <p><span id="adsWatched">0</span></p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="action-buttons">
-                <button class="watch-btn" onclick="watchAd()">
-                    <span class="icon">▶️</span>
-                    <span class="text">Watch Ad</span>
-                    <small>Earn $0.01</small>
-                </button>
-                <button class="withdraw-btn" onclick="showWithdraw()">
-                    <span class="icon">💰</span>
-                    <span class="text">Withdraw</span>
-                    <small>Min. $5.00</small>
-                </button>
-            </div>
-
-            <!-- History Section -->
-            <div class="history-section">
-                <h3>Recent Activity</h3>
-                <div class="history-list" id="historyList">
-                    <!-- History items will be added here -->
-                </div>
-            </div>
+        <div class="action-buttons">
+          <button class="action-button" onclick="watchAd()">▶️ Watch Ad<br><small>Earn $0.01</small></button>
+          <button class="action-button withdraw-btn" onclick="showWithdrawModal()">💰 Withdraw<br><small>Min. $5.00</small></button>
         </div>
-
-        <!-- Ad Watching Screen -->
-        <div class="screen" id="adScreen" style="display: none;">
-            <div class="ad-container">
-                <div class="ad-status">
-                    <div class="progress-bar">
-                        <div class="progress" id="adProgress"></div>
-                    </div>
-                    <p id="adMessage">Loading ad...</p>
-                </div>
-            </div>
+        <!-- Ad Demo Section -->
+        <div class="ad-demo">
+          <button class="action-button" onclick="showRewardedInterstitial()">Show Rewarded Interstitial</button>
+          <button class="action-button" onclick="showRewardedPopup()">Show Rewarded Popup</button>
+          <button class="action-button" onclick="showInAppInterstitial()">Show In-App Interstitial</button>
         </div>
-
-        <!-- Withdraw Modal -->
-        <div class="modal" id="withdrawModal">
-            <div class="modal-content">
-                <h3>Withdraw to EVC Plus</h3>
-                <div class="modal-body">
-                    <div class="input-group">
-                        <label>EVC Plus Number</label>
-                        <input type="tel" id="evcNumber" placeholder="Enter EVC Plus number">
-                    </div>
-                    <div class="input-group">
-                        <label>Amount ($)</label>
-                        <input type="number" id="withdrawAmount" value="5.00" min="5.00" step="0.01">
-                    </div>
-                    <button class="primary-btn" onclick="processWithdraw()">Withdraw Now</button>
-                    <button class="secondary-btn" onclick="closeModal()">Cancel</button>
-                </div>
-            </div>
+        <div class="history-section">
+          <h3>Recent Activity</h3>
+          <div class="history-list" id="historyList">
+            <!-- History items will be appended via JavaScript -->
+          </div>
         </div>
-
-        <!-- Toast Message -->
-        <div class="toast" id="toast"></div>
+      </div>
+      
+      <!-- Profile Screen -->
+      <div id="profileScreen" class="sub-screen" style="display: none;">
+        <div class="card profile-card">
+          <h3>Profile</h3>
+          <p>Username: <span id="profileUsername"></span></p>
+        </div>
+      </div>
+      
+      <!-- Referral Screen -->
+      <div id="referralScreen" class="sub-screen" style="display: none;">
+        <div class="referral-card">
+          <h3>🎁 Invite Friends</h3>
+          <div class="referral-info">+$0.05 for each referral! (Max 5 referrals)</div>
+          <!-- Each user gets their own referral link -->
+          <div class="referral-link" id="referralLink">https://t.me/Ad_Cashbot?start=</div>
+          <button class="copy-button" onclick="copyReferral()">Copy Link</button>
+        </div>
+      </div>
+      
+      <!-- Navigation Banner -->
+      <nav class="nav-banner">
+        <button class="nav-button active" id="navHome" onclick="showScreen('homeScreen')" title="Home">
+          <i class="fa-solid fa-house"></i> Home
+        </button>
+        <button class="nav-button" id="navProfile" onclick="showScreen('profileScreen')" title="Profile">
+          <i class="fa-solid fa-user"></i> Profile
+        </button>
+        <button class="nav-button" id="navReferral" onclick="showScreen('referralScreen')" title="Referral">
+          <i class="fa-solid fa-gift"></i> Referral
+        </button>
+      </nav>
+    </section>
+  </div>
+  
+  <!-- Withdraw Modal -->
+  <div class="modal" id="withdrawModal">
+    <div class="modal-content">
+      <h3>Withdraw Funds</h3>
+      <div class="modal-body">
+        <div class="input-group">
+          <label for="evcNumber">EVC Plus Number</label>
+          <input type="tel" id="evcNumber" placeholder="Enter EVC Plus number">
+        </div>
+        <div class="input-group">
+          <label for="withdrawAmount">Amount ($)</label>
+          <input type="number" id="withdrawAmount" min="5" step="0.01" value="5.00">
+        </div>
+        <button class="primary-btn" onclick="processWithdraw()">Withdraw Now</button>
+        <button class="secondary-btn" onclick="closeWithdrawModal()">Cancel</button>
+      </div>
     </div>
-    <script src="script.js"></script>
+  </div>
+  
+  <script>
+    // Global variables for the app
+    let currentUser = null;
+    let userData = null;
+    
+    // Utility: display a simple toast message (using alert for simplicity)
+    function showToast(message) {
+      alert(message);
+    }
+    
+    // Check authentication state and toggle screens accordingly
+    function checkAuthState() {
+      const storedUser = localStorage.getItem("username");
+      if (storedUser) {
+        currentUser = storedUser;
+        loadUserData();
+        document.getElementById("authScreen").style.display = "none";
+        document.getElementById("navScreen").style.display = "block";
+        updateUI();
+        showScreen("homeScreen");
+      } else {
+        document.getElementById("authScreen").style.display = "block";
+        document.getElementById("navScreen").style.display = "none";
+      }
+    }
+    
+    // Load user data from localStorage or initialize it
+    function loadUserData() {
+      const dataKey = "userData_" + currentUser;
+      const data = localStorage.getItem(dataKey);
+      if (data) {
+        userData = JSON.parse(data);
+      } else {
+        userData = {
+          balance: 0,
+          todayEarnings: 0,
+          adsWatched: 0,
+          history: [],
+          referrals: 0
+        };
+        localStorage.setItem(dataKey, JSON.stringify(userData));
+      }
+    }
+    
+    // Save user data to localStorage
+    function saveUserData() {
+      const dataKey = "userData_" + currentUser;
+      localStorage.setItem(dataKey, JSON.stringify(userData));
+    }
+    
+    // Update the UI based on user data.
+    // Each user gets their own referral link containing their username.
+    function updateUI() {
+      document.getElementById("balance").textContent = "$" + userData.balance.toFixed(2);
+      document.getElementById("todayEarnings").textContent = "$" + userData.todayEarnings.toFixed(2);
+      document.getElementById("adsWatched").textContent = userData.adsWatched;
+      updateHistory();
+      document.getElementById("referralLink").textContent = "https://t.me/Ad_Cashbot?start=" + encodeURIComponent(currentUser);
+      document.getElementById("profileUsername").textContent = currentUser;
+    }
+    
+    // Update the recent activity (history) list
+    function updateHistory() {
+      const historyList = document.getElementById("historyList");
+      historyList.innerHTML = "";
+      userData.history.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "history-item";
+        div.textContent = item;
+        historyList.appendChild(div);
+      });
+    }
+    
+    // Login function: saves username and initializes user data
+    function login() {
+      const usernameInput = document.getElementById("usernameInput");
+      const username = usernameInput.value.trim();
+      if (username === "") {
+        showToast("Please enter a username.");
+        return;
+      }
+      currentUser = username;
+      localStorage.setItem("username", currentUser);
+      loadUserData();
+      checkAuthState();
+    }
+    
+    // Logout function: clears the username and shows the login screen
+    function logout() {
+      currentUser = null;
+      localStorage.removeItem("username");
+      document.getElementById("authScreen").style.display = "block";
+      document.getElementById("navScreen").style.display = "none";
+    }
+    
+    // Simulate watching an ad (adds $0.01, increments ads watched, and logs history)
+    function watchAd() {
+      let duration = 5000; // 5-second ad simulation
+      let start = Date.now();
+      let interval = setInterval(() => {
+        let elapsed = Date.now() - start;
+        if (elapsed >= duration) {
+          clearInterval(interval);
+          userData.balance += 0.01;
+          userData.todayEarnings += 0.01;
+          userData.adsWatched += 1;
+          const timestamp = new Date().toLocaleTimeString();
+          userData.history.push("Watched ad at " + timestamp + " (+$0.01)");
+          saveUserData();
+          updateUI();
+          showToast("Ad finished, you earned $0.01");
+        }
+      }, 100);
+    }
+    
+    // Show the withdraw modal
+    function showWithdrawModal() {
+      document.getElementById("withdrawModal").style.display = "flex";
+    }
+    
+    // Close the withdraw modal
+    function closeWithdrawModal() {
+      document.getElementById("withdrawModal").style.display = "none";
+    }
+    
+    // Process the withdrawal request
+    function processWithdraw() {
+      const evcNumber = document.getElementById("evcNumber").value.trim();
+      const amount = parseFloat(document.getElementById("withdrawAmount").value);
+      if (evcNumber === "" || isNaN(amount)) {
+        showToast("Please enter valid withdrawal details.");
+        return;
+      }
+      if (userData.balance < 5) {
+        showToast("Your available balance must be at least $5.00 to withdraw.");
+        return;
+      }
+      if (amount < 5) {
+        showToast("Minimum withdrawal amount is $5.00.");
+        return;
+      }
+      if (userData.balance < amount) {
+        showToast("Insufficient balance.");
+        return;
+      }
+      userData.balance -= amount;
+      const timestamp = new Date().toLocaleTimeString();
+      userData.history.push("Withdrew $" + amount.toFixed(2) + " to " + evcNumber + " at " + timestamp);
+      saveUserData();
+      updateUI();
+      closeWithdrawModal();
+      showToast("Withdrawal successful.");
+    }
+    
+    // Copy the referral link to the clipboard
+    function copyReferral() {
+      const referralLink = document.getElementById("referralLink").textContent;
+      navigator.clipboard.writeText(referralLink).then(() => {
+        showToast("Referral link copied!");
+      }, () => {
+        showToast("Failed to copy link.");
+      });
+    }
+    
+    // Navigation: Toggle sub-screens and update nav button active state
+    function showScreen(screenId) {
+      document.getElementById("homeScreen").style.display = "none";
+      document.getElementById("profileScreen").style.display = "none";
+      document.getElementById("referralScreen").style.display = "none";
+      document.getElementById(screenId).style.display = "block";
+      updateNavButtons(screenId);
+    }
+    
+    function updateNavButtons(activeScreen) {
+      document.getElementById("navHome").classList.remove("active");
+      document.getElementById("navProfile").classList.remove("active");
+      document.getElementById("navReferral").classList.remove("active");
+      if (activeScreen === "homeScreen") {
+        document.getElementById("navHome").classList.add("active");
+      } else if (activeScreen === "profileScreen") {
+        document.getElementById("navProfile").classList.add("active");
+      } else if (activeScreen === "referralScreen") {
+        document.getElementById("navReferral").classList.add("active");
+      }
+    }
+    
+    // New Ad Integration Functions
+    
+    // Rewarded Interstitial
+    function showRewardedInterstitial() {
+      show_8980914().then(() => {
+        // Reward user after ad watched
+        alert('You have seen a rewarded interstitial ad!');
+      });
+    }
+    
+    // Rewarded Popup
+    function showRewardedPopup() {
+      show_8980914('pop').then(() => {
+        // Reward user after ad watched to the end (popup format)
+        alert('You have seen a rewarded popup ad!');
+      }).catch(e => {
+        console.error('Error showing rewarded popup ad:', e);
+      });
+    }
+    
+    // In-App Interstitial
+    function showInAppInterstitial() {
+      show_8980914({
+        type: 'inApp',
+        inAppSettings: {
+          frequency: 2,
+          capping: 0.1,
+          interval: 30,
+          timeout: 5,
+          everyPage: false
+        }
+      }).then(() => {
+        alert('In-App interstitial ad was shown!');
+      }).catch(e => {
+        console.error('Error showing in-app interstitial ad:', e);
+      });
+    }
+    
+    document.addEventListener("DOMContentLoaded", () => {
+      checkAuthState();
+    });
+  </script>
 </body>
-</html>
+</html> 
