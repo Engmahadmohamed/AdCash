@@ -61,31 +61,30 @@ function displayUsers(users, newUsers = []) {
     // Get admin storage
     const adminStorage = JSON.parse(localStorage.getItem('adminStorage'));
 
-    // Sort users by join date (newest first)
-    users.sort((a, b) => {
-        const dateA = new Date(adminStorage.users[a.username]?.joinDate || 0);
-        const dateB = new Date(adminStorage.users[b.username]?.joinDate || 0);
-        return dateB - dateA;
-    });
-
     users.forEach(user => {
         const tr = document.createElement("tr");
         const storedUserData = adminStorage.users[user.username];
-        const joinDate = storedUserData ? formatDate(new Date(storedUserData.joinDate)) : 'Unknown';
+        const joinDate = storedUserData ? formatDate(new Date(storedUserData.joinDate)) : formatDate(new Date(user.joinDate));
         
         // Check if this is a new user
         const isNewUser = newUsers.some(newUser => newUser.username === user.username);
         if (isNewUser) {
             tr.classList.add('new-user');
             tr.classList.add('new-user-animation');
-            setTimeout(() => {
-                tr.classList.remove('new-user-animation');
-            }, 2000);
+            
+            // Store the new user's join date
+            adminStorage.users[user.username] = {
+                joinDate: user.joinDate || new Date().toISOString(),
+                lastSeen: new Date().toISOString()
+            };
+            localStorage.setItem('adminStorage', JSON.stringify(adminStorage));
         }
         
+        // Create table row content
         tr.innerHTML = `
             <td>
                 ${user.username}
+                ${isNewUser ? '<span class="new-badge">New</span>' : ''}
                 ${user.contactInfo ? `
                     <div class="contact-info">
                         <i class="fas fa-address-card"></i>
@@ -708,18 +707,29 @@ function setupAutoRefresh() {
     }, 1000); // Changed from 5000 to 1000 milliseconds
 }
 
-// Update the checkForNewUsers function to be more efficient
+// Update the checkForNewUsers function
 function checkForNewUsers() {
     const adminStorage = JSON.parse(localStorage.getItem('adminStorage'));
     const currentUsers = getAllUsers();
-    const newUsers = currentUsers.filter(user => !adminStorage.lastKnownState[user.username]);
-
-    // Update last known state
-    currentUsers.forEach(user => {
-        adminStorage.lastKnownState[user.username] = user;
+    
+    // Compare with last known state to find new users
+    const newUsers = currentUsers.filter(user => {
+        // Check if user exists in lastKnownState
+        const isNewUser = !adminStorage.lastKnownState[user.username];
+        
+        // Update last known state for this user
+        adminStorage.lastKnownState[user.username] = {
+            joinDate: user.joinDate,
+            lastSeen: new Date().toISOString()
+        };
+        
+        return isNewUser;
     });
+
+    // Save updated adminStorage
     localStorage.setItem('adminStorage', JSON.stringify(adminStorage));
 
+    // Display users and show notifications for new ones
     if (newUsers.length > 0) {
         displayUsers(currentUsers, newUsers);
         newUsers.forEach(user => {
