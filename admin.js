@@ -93,7 +93,7 @@ function viewUserDetails(username) {
         localStorage.setItem(`userData_${username}`, JSON.stringify(userData));
     }
 
-    details.innerHTML = `
+    const userHeaderHTML = `
         <div class="user-header">
             <i class="fas fa-user-circle"></i>
             <h3>${username}</h3>
@@ -131,45 +131,78 @@ function viewUserDetails(username) {
                 </button>
             </div>
         </div>
-        
-        <div class="stats-container">
-            <div class="stat-box">
-                <div class="stat-label">Balance</div>
+    `;
+
+    const statsHTML = `
+        <div class="stats-grid">
+            <div class="stat-box balance">
+                <div class="stat-label">
+                    <i class="fas fa-wallet"></i>
+                    Balance
+                </div>
                 <div class="stat-value">$${userData.balance.toFixed(2)}</div>
-                <div class="stat-date">Last updated: ${formatDate(new Date())}</div>
-                <button onclick="editBalance('${username}')" class="edit-stat-btn">
-                    <i class="fas fa-edit"></i>
-                </button>
+                <div class="stat-date">
+                    <i class="far fa-clock"></i>
+                    Last updated: ${formatDate(new Date())}
+                </div>
             </div>
             
             <div class="stat-box">
-                <div class="stat-label">Total Withdrawn</div>
-                <div class="stat-value">$${(userData.totalWithdrawn || 0).toFixed(2)}</div>
-                <div class="stat-date">Last withdrawal: ${userData.lastWithdrawalDate ? 
-                    formatDate(new Date(userData.lastWithdrawalDate)) : 'Never'}</div>
+                <div class="stat-label">
+                    <i class="fas fa-hand-holding-usd"></i>
+                    Total Withdrawn
+                </div>
+                <div class="stat-value ${(userData.totalWithdrawn || 0) === 0 ? 'zero-value' : ''}">
+                    $${(userData.totalWithdrawn || 0).toFixed(2)}
+                </div>
+                <div class="stat-date">
+                    <i class="far fa-clock"></i>
+                    Last withdrawal: 
+                    <span class="${!userData.lastWithdrawalDate ? 'status-never' : ''}">
+                        ${userData.lastWithdrawalDate ? formatDate(new Date(userData.lastWithdrawalDate)) : 'Never'}
+                    </span>
+                </div>
             </div>
             
             <div class="stat-box">
-                <div class="stat-label">Ads Watched</div>
-                <div class="stat-value">${userData.adsWatched || 0}</div>
-                <div class="stat-date">Last ad: ${userData.lastAdDate ? 
-                    formatDate(new Date(userData.lastAdDate)) : 'Never'}</div>
-                <button onclick="resetAdsWatched('${username}')" class="edit-stat-btn">
-                    <i class="fas fa-redo"></i>
-                </button>
+                <div class="stat-label">
+                    <i class="fas fa-play-circle"></i>
+                    Ads Watched
+                </div>
+                <div class="stat-value ${(userData.adsWatched || 0) === 0 ? 'zero-value' : ''}">
+                    ${userData.adsWatched || 0}
+                </div>
+                <div class="stat-date">
+                    <i class="far fa-clock"></i>
+                    Last ad: 
+                    <span class="${!userData.lastAdDate ? 'status-never' : ''}">
+                        ${userData.lastAdDate ? formatDate(new Date(userData.lastAdDate)) : 'Never'}
+                    </span>
+                </div>
             </div>
             
             <div class="stat-box">
-                <div class="stat-label">Referrals</div>
-                <div class="stat-value">${userData.referrals || 0}</div>
-                <div class="stat-date">Last referral: ${userData.lastReferralDate ? 
-                    formatDate(new Date(userData.lastReferralDate)) : 'Never'}</div>
-                <button onclick="editReferrals('${username}')" class="edit-stat-btn">
-                    <i class="fas fa-edit"></i>
-                </button>
+                <div class="stat-label">
+                    <i class="fas fa-users"></i>
+                    Referrals
+                </div>
+                <div class="stat-value ${(userData.referrals || 0) === 0 ? 'zero-value' : ''}">
+                    ${userData.referrals || 0}
+                </div>
+                <div class="stat-date">
+                    <i class="far fa-clock"></i>
+                    Last referral: 
+                    <span class="${!userData.lastReferralDate ? 'status-never' : ''}">
+                        ${userData.lastReferralDate ? formatDate(new Date(userData.lastReferralDate)) : 'Never'}
+                    </span>
+                </div>
             </div>
         </div>
-        
+    `;
+
+    details.innerHTML = `
+        ${userHeaderHTML}
+        ${statsHTML}
         <div class="score-card">
             <div class="score-info">
                 <div class="score-label">User Score</div>
@@ -350,15 +383,27 @@ function deleteUser() {
 function showAdminToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `admin-toast ${type}`;
+    
+    // Icon based on type
+    const iconClass = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        info: 'fa-info-circle'
+    }[type] || 'fa-info-circle';
+    
     toast.innerHTML = `
-        <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+        <i class="fas ${iconClass}"></i>
         <span>${message}</span>
     `;
     
     document.body.appendChild(toast);
     
+    // Remove toast after delay
     setTimeout(() => {
-        toast.remove();
+        toast.classList.add('removing');
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
     }, 3000);
 }
 
