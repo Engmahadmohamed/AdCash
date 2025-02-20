@@ -1,0 +1,401 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+    --primary-color: #2196F3;
+    --secondary-color: #1976D2;
+    --success-color: #4CAF50;
+    --error-color: #f44336;
+    --text-color: #333;
+    --light-text: #666;
+    --border-radius: 16px;
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f5f6fa;
+    color: var(--text-color);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+.app {
+    max-width: 500px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: white;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Status Bar */
+.status-bar {
+    background: #000;
+    color: white;
+    padding: 5px 15px;
+    padding-top: calc(5px + var(--safe-area-inset-top));
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+}
+
+.status-bar .icons {
+    display: flex;
+    gap: 5px;
+}
+
+/* Screens */
+.screen {
+    min-height: calc(100vh - 30px);
+    padding: 20px;
+    position: relative;
+}
+
+/* Auth Screen */
+.auth-content {
+    text-align: center;
+    padding-top: 50px;
+}
+
+.auth-content h1 {
+    font-size: 32px;
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+
+.auth-content p {
+    color: var(--light-text);
+    margin-bottom: 40px;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.auth-form input {
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    font-size: 16px;
+    width: 100%;
+}
+
+/* Balance Card */
+.balance-card {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    padding: 25px;
+    border-radius: var(--border-radius);
+    color: white;
+    margin-bottom: 20px;
+}
+
+.balance-card small {
+    opacity: 0.8;
+}
+
+.balance-card h2 {
+    font-size: 36px;
+    margin: 10px 0 20px;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.watch-btn, .withdraw-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    border: none;
+    border-radius: var(--border-radius);
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.watch-btn:active, .withdraw-btn:active {
+    transform: scale(0.98);
+}
+
+.watch-btn .icon, .withdraw-btn .icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+.watch-btn .text, .withdraw-btn .text {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.watch-btn small, .withdraw-btn small {
+    font-size: 12px;
+    color: var(--light-text);
+}
+
+/* History Section */
+.history-section {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 20px;
+}
+
+.history-section h3 {
+    margin-bottom: 15px;
+    color: var(--text-color);
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    animation: fadeIn 0.3s;
+}
+
+.modal-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: white;
+    border-radius: 20px 20px 0 0;
+    padding: 20px;
+    animation: slideUp 0.3s;
+}
+
+.modal h3 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.input-group {
+    margin-bottom: 15px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--light-text);
+}
+
+.input-group input {
+    width: 100%;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    font-size: 16px;
+}
+
+/* Buttons */
+.primary-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: var(--border-radius);
+    font-size: 16px;
+    width: 100%;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.secondary-btn {
+    background: #f5f6fa;
+    color: var(--text-color);
+    border: none;
+    padding: 15px;
+    border-radius: var(--border-radius);
+    font-size: 16px;
+    width: 100%;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+/* Ad Screen */
+.ad-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.ad-status {
+    width: 100%;
+    text-align: center;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 6px;
+    background: #eee;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.progress {
+    width: 0;
+    height: 100%;
+    background: var(--primary-color);
+    transition: width 0.3s linear;
+}
+
+.verification-box {
+    text-align: center;
+    animation: fadeIn 0.3s;
+}
+
+.verification-box h3 {
+    margin-bottom: 10px;
+}
+
+.verification-box input {
+    width: 200px;
+    padding: 15px;
+    border: 2px solid var(--primary-color);
+    border-radius: var(--border-radius);
+    font-size: 24px;
+    text-align: center;
+    letter-spacing: 4px;
+    margin: 20px 0;
+}
+
+/* Toast */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-size: 14px;
+    display: none;
+    animation: fadeIn 0.3s;
+}
+
+/* Minimum Balance Modal */
+.min-balance-card {
+    text-align: center;
+    padding: 30px 20px !important;
+}
+
+.min-balance-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+    animation: bounce 1s infinite;
+}
+
+.min-balance-card h3 {
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+
+.min-balance-card p {
+    color: var(--light-text);
+    margin-bottom: 25px;
+}
+
+.balance-info {
+    background: #f8f9fa;
+    border-radius: var(--border-radius);
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.balance-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+}
+
+.balance-row:first-child {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+}
+
+.current-balance {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.needed-balance {
+    color: var(--error-color);
+    font-weight: 600;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+/* iOS Safe Areas */
+@supports (padding: max(0px)) {
+    .app {
+        padding-top: var(--safe-area-inset-top);
+        padding-bottom: var(--safe-area-inset-bottom);
+    }
+}
