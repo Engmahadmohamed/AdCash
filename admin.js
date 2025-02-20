@@ -27,6 +27,17 @@ function getAllUsers() {
         if (key.startsWith("userData_")) {
             const username = key.replace("userData_", "");
             const userData = JSON.parse(localStorage.getItem(key));
+            
+            // Store in admin storage
+            const adminStorage = JSON.parse(localStorage.getItem('adminStorage'));
+            if (!adminStorage.users[username]) {
+                adminStorage.users[username] = {
+                    joinDate: userData.joinDate || new Date().toISOString(),
+                    lastActive: new Date().toISOString()
+                };
+                localStorage.setItem('adminStorage', JSON.stringify(adminStorage));
+            }
+            
             users.push({ username, ...userData });
         }
     }
@@ -47,16 +58,20 @@ function displayUsers(users, newUsers = []) {
     const tbody = document.getElementById("usersTableBody");
     tbody.innerHTML = "";
 
+    // Get admin storage
+    const adminStorage = JSON.parse(localStorage.getItem('adminStorage'));
+
     // Sort users by join date (newest first)
     users.sort((a, b) => {
-        const dateA = new Date(a.joinDate || 0);
-        const dateB = new Date(b.joinDate || 0);
+        const dateA = new Date(adminStorage.users[a.username]?.joinDate || 0);
+        const dateB = new Date(adminStorage.users[b.username]?.joinDate || 0);
         return dateB - dateA;
     });
 
     users.forEach(user => {
         const tr = document.createElement("tr");
-        const joinDate = user.joinDate ? formatDate(new Date(user.joinDate)) : 'Unknown';
+        const storedUserData = adminStorage.users[user.username];
+        const joinDate = storedUserData ? formatDate(new Date(storedUserData.joinDate)) : 'Unknown';
         
         // Check if this is a new user
         const isNewUser = newUsers.some(newUser => newUser.username === user.username);
@@ -92,11 +107,8 @@ function displayUsers(users, newUsers = []) {
         tbody.appendChild(tr);
     });
 
-    // Update the total count display
-    const totalCount = document.getElementById("totalUsers");
-    if (totalCount) {
-        totalCount.textContent = users.length;
-    }
+    // Update statistics
+    updateAdminStats(users);
 }
 
 // User Management Functions
@@ -581,6 +593,7 @@ document.getElementById("searchUser").addEventListener("input", (e) => {
 // Initialize admin panel
 document.addEventListener("DOMContentLoaded", () => {
     if (checkAdminAuth()) {
+        initializeStorage();
         loadAllUsers();
         setupRealtimeMonitoring();
         
@@ -697,38 +710,23 @@ function setupAutoRefresh() {
 
 // Update the checkForNewUsers function to be more efficient
 function checkForNewUsers() {
-    const users = getAllUsers();
-    const lastKnownUsers = JSON.parse(localStorage.getItem('lastKnownUsers') || '[]');
-    
-    // Find new users by comparing with last known users
-    const newUsers = users.filter(user => 
-        !lastKnownUsers.some(known => known.username === user.username)
-    );
-    
+    const adminStorage = JSON.parse(localStorage.getItem('adminStorage'));
+    const currentUsers = getAllUsers();
+    const newUsers = currentUsers.filter(user => !adminStorage.lastKnownState[user.username]);
+
+    // Update last known state
+    currentUsers.forEach(user => {
+        adminStorage.lastKnownState[user.username] = user;
+    });
+    localStorage.setItem('adminStorage', JSON.stringify(adminStorage));
+
     if (newUsers.length > 0) {
-        // Update display with new users highlighted
-        displayUsers(users, newUsers);
-        
-        // Show notifications for new users
+        displayUsers(currentUsers, newUsers);
         newUsers.forEach(user => {
-            showAdminToast(`New user joined: ${user.username}`, 'info');
+            showAdminToast(`New user joined: ${user.username}`, 'success');
         });
-        
-        // Update last known users immediately
-        localStorage.setItem('lastKnownUsers', JSON.stringify(users));
-        updateAdminStats(users);
     } else {
-        // Only update if there are changes in existing users
-        const hasChanges = users.some(user => {
-            const lastKnownUser = lastKnownUsers.find(known => known.username === user.username);
-            return !lastKnownUser || JSON.stringify(user) !== JSON.stringify(lastKnownUser);
-        });
-        
-        if (hasChanges) {
-            displayUsers(users);
-            updateAdminStats(users);
-            localStorage.setItem('lastKnownUsers', JSON.stringify(users));
-        }
+        displayUsers(currentUsers);
     }
 }
 
@@ -862,4 +860,19 @@ function updateUserData(username, updates) {
     const updatedData = { ...userData, ...updates };
     localStorage.setItem(`userData_${username}`, JSON.stringify(updatedData));
     return updatedData;
+}
+
+// Add this function to handle persistent storage
+function initializeStorage() {
+    if (!localStorage.getItem('adminStorage')) {
+        localStorage.setItem('adminStorage', JSON.stringify({
+            users: {},
+            lastKnownState: {},
+            statistics: {
+                totalUsers: 0,
+                totalWithdrawn: 0,
+                totalAdsWatched: 0
+            }
+        }));
+    }
 } 
